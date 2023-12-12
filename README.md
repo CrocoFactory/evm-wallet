@@ -31,20 +31,20 @@ You can quickly use supported networks as RPC:
 | Base Goerli     | ETH          | ✅        |
 | BSC             | BNB          | ❌        |
 | BSC Testnet     | tBNB         | ✅        |
+| Ethereum        | ETH          | ❌        |
 | Fantom          | FTM          | ❌        |
 | Fantom Testnet  | FTM          | ✅        |
 | Fuji            | AVAX         | ✅        |
-| Ethereum        | ETH          | ❌        |
 | Goerli          | GETH         | ✅        |
 | Linea           | ETH          | ❌        |
-| Linea Testnet   | ETH          | ✅        |
-| Sepolia         | SETH         | ❌        |
+| Linea Goerli    | ETH          | ✅        |
+| Mumbai          | MATIC        | ✅        |
 | opBNB           | BNB          | ❌        |
 | opBNB Testnet   | BNB          | ✅        |
 | Optimism        | ETH          | ❌        |
 | Optimism Goerli | OGOR         | ✅        |
 | Polygon         | MATIC        | ❌        |
-| Mumbai          | MATIC        | ✅        |
+| Sepolia         | SETH         | ❌        |
 | zkSync          | ETH          | ❌        |
 
 
