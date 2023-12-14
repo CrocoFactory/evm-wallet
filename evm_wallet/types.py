@@ -6,8 +6,9 @@ from typing import NotRequired
 
 TokenAmount = Union[Wei, int]
 AddressLike = Union[Address, ChecksumAddress, str]
-Network = Literal['Arbitrum Goerli', 'Arbitrum', 'BSC', 'tBSC', 'Ethereum', 'Goerli', 'Sepolia', 'Optimism',
-                  'Optimism Goerli', 'Polygon', 'Mumbai', 'zkSync']
+Network = Literal['Arbitrum Goerli', 'Arbitrum', 'Avalanche', 'Base', 'Base Goerli', 'BSC', 'BSC Testnet', 'Ethereum',
+                  'Fantom', 'Fantom Testnet', 'Fuji', 'Goerli', 'Linea', 'Linea Goerli', 'Mumbai', 'opBNB',
+                  'opBNB Testnet', 'Optimism', 'Optimism Goerli', 'Polygon', 'Sepolia', 'zkSync']
 
 NativeToken = Literal['AGOR', 'ARB', 'BNB', 'tBNB', 'ETH', 'GETH', 'SETH', 'MATIC', 'OP',
                       '0x0000000000000000000000000000000000000000']
