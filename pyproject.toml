@@ -1,6 +1,6 @@
 [tool.poetry]
 name = 'evm_wallet'
-version = '1.0.3'
+version = '1.0.4'
 description = 'The package, containing wrapper over EVM operations for interacting through Wallet entities'
 authors = ['Alexey <abelenkov2006@gmail.com>']
 license = 'MIT'

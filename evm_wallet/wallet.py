@@ -202,12 +202,14 @@ class AsyncWallet:
     async def build_transaction_params(
             self,
             value: TokenAmount,
+            recipient: Optional[AddressLike] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
     ) -> TxParams:
         """
         Returns transaction's params
         :param value: A quantity of network currency to be paid in Wei units
+        :param recipient: An address of recipient
         :param gas: A quantity of gas to be spent
         :param gas_price: A price of gas in Wei units
         :return: Transaction's params
@@ -222,6 +224,10 @@ class AsyncWallet:
             'gas': gas if gas else Wei(250_000),
             'gasPrice': gas_price if gas_price else await provider.eth.gas_price,
         }
+
+        if recipient:
+            tx_params['to'] = recipient
+
         return tx_params
 
     async def transact(self, tx_data: TxData) -> HexBytes:
@@ -375,12 +381,14 @@ class Wallet(AsyncWallet):
     def build_transaction_params(
             self,
             value: Wei,
+            recipient: Optional[AddressLike] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
     ) -> TxParams:
         """
         Returns transaction's params
         :param value: A quantity of network currency to be paid in Wei units
+        :param recipient: An address of recipient
         :param gas: A quantity of gas to be spent
         :param gas_price: A price of gas in Wei units
         :return: Transaction's params
