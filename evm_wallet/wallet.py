@@ -3,13 +3,13 @@ from web3 import AsyncWeb3, Web3
 from web3.types import Wei, TxParams, TxData
 from hexbytes import HexBytes
 from .exceptions import InvalidNetworkInfo
-from .globals import NETWORK_MAP
-from .types import AddressLike, TokenAmount, Network, NetworkInfo, NetworkOrInfo, NativeToken
+from .globals import NETWORK_MAP, ZERO_ADDRESS
+from .types import AddressLike, TokenAmount, Network, NetworkInfo, NetworkOrInfo
 from eth_account import Account
 from typing import Optional, Self
 from eth_typing import ChecksumAddress
 from web3.contract.contract import ContractFunction
-from .utils import in_literal, load_token_contract, is_typed_dict, is_native_token
+from .utils import in_literal, load_token_contract, is_typed_dict
 
 
 class AsyncWallet:
@@ -91,14 +91,22 @@ class AsyncWallet:
     def native_token(self) -> str:
         return self.network['token']
 
-    def is_native_token(self, token: NativeToken) -> bool:
+    def is_native_token(self, token: str | HexBytes) -> bool:
         """
         Returns true if token is native token of network
 
         :param token: Name of token or zero-address - 0x0000000000000000000000000000000000000000
         :return: True if token is native token of network
         """
-        return is_native_token(self.network, token)
+        network = self.network
+        native_token = network['token']
+
+        if isinstance(token, HexBytes):
+            token.hex()
+
+        return (token.upper() == native_token or
+                token.lower() == native_token or
+                token == ZERO_ADDRESS)
 
     @classmethod
     def create(cls, network: NetworkOrInfo = 'Ethereum') -> Self:
