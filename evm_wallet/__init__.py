@@ -19,8 +19,6 @@ Usage example:
 :license: Apache 2.0, see LICENSE for more details.
 """
 
-__version__ = "1.0.0"
-
 from .wallet import AsyncWallet, Wallet
 from .types import NetworkInfo
 from .globals import ZERO_ADDRESS
