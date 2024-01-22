@@ -1,13 +1,14 @@
 import asyncio
 from web3 import AsyncWeb3, Web3
+from web3.middleware import geth_poa_middleware
 from web3.types import Wei, TxParams, TxData
 from hexbytes import HexBytes
 from .exceptions import InvalidNetworkInfo
 from .globals import NETWORK_MAP, ZERO_ADDRESS
 from .types import AddressLike, TokenAmount, Network, NetworkInfo, NetworkOrInfo
 from eth_account import Account
-from typing import Optional, Self
-from eth_typing import ChecksumAddress
+from typing import Optional, Self, Union
+from eth_typing import ChecksumAddress, HexStr
 from web3.contract.contract import ContractFunction
 from .utils import in_literal, load_token_contract, is_typed_dict
 
@@ -140,14 +141,14 @@ class AsyncWallet:
         balance = await provider.eth.get_balance(self.public_key)
         return provider.from_wei(balance, 'ether')
 
-    async def estimate_gas(self, tx_data: TxData) -> Wei:
+    async def estimate_gas(self, tx_params: TxParams) -> Wei:
         """
         Returns an estimating quantity of gas to perform transaction in Wei units
-        :param tx_data: Data of built transaction
+        :param tx_params: Params of built transaction
         :return: Estimated gas in Wei
         """
         provider = self.provider
-        gas = Wei(int(await provider.eth.estimate_gas(tx_data)))
+        gas = Wei(int(await provider.eth.estimate_gas(tx_params)))
         return gas
 
     async def build_and_transact(
@@ -179,7 +180,7 @@ class AsyncWallet:
         :return: Transaction's hash
         """
         provider = self.provider
-        tx_params = await self.build_transaction_params(value, gas, gas_price)
+        tx_params = await self.build_transaction_params(value=value, gas=gas, gas_price=gas_price)
         tx_data = await closure.build_transaction(tx_params)
 
         if not gas:
@@ -211,6 +212,7 @@ class AsyncWallet:
             self,
             value: TokenAmount,
             recipient: Optional[AddressLike] = None,
+            raw_data: Optional[Union[bytes, HexStr]] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
     ) -> TxParams:
@@ -218,6 +220,7 @@ class AsyncWallet:
         Returns transaction's params
         :param value: A quantity of network currency to be paid in Wei units
         :param recipient: An address of recipient
+        :param raw_data: Transaction's data provided as HexStr or bytes
         :param gas: A quantity of gas to be spent
         :param gas_price: A price of gas in Wei units
         :return: Transaction's params
@@ -236,16 +239,19 @@ class AsyncWallet:
         if recipient:
             tx_params['to'] = recipient
 
+        if raw_data:
+            tx_params['data'] = raw_data
+
         return tx_params
 
-    async def transact(self, tx_data: TxData) -> HexBytes:
+    async def transact(self, tx_params: TxParams) -> HexBytes:
         """
         Performs transaction, using transaction data, which is got after building
-        :param tx_data: Built transaction's data
+        :param tx_params: Built transaction's params
         :return: Transaction's hash
         """
         provider = self.provider
-        signed_transaction = provider.eth.account.sign_transaction(tx_data, self.private_key)
+        signed_transaction = provider.eth.account.sign_transaction(tx_params, self.private_key)
         tx_hash = await provider.eth.send_raw_transaction(signed_transaction.rawTransaction)
         self.__nonce += 1
         
@@ -273,12 +279,13 @@ class AsyncWallet:
         closure = await token_contract.functions.transfer(recipient, token_amount)
         return await self.build_and_transact(closure, Wei(0), gas, gas_price)
 
-    async def get_transactions(self) -> list[TxData]:
+    def get_transactions(self) -> list[TxData]:
         """
         Returns a list of transactions for the current wallet
         :return: List of transactions
         """
-        provider = self.provider
+        provider = Web3(Web3.HTTPProvider(self.network['rpc']))
+        provider.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         block_number = provider.eth.block_number
         start_block = 0
@@ -288,7 +295,7 @@ class AsyncWallet:
 
         transactions = []
         for block in range(end_block, start_block - 1, -1):
-            block_info = await provider.eth.get_block(block, True)
+            block_info = provider.eth.get_block(block, True)
 
             for tx in reversed(block_info['transactions']):
                 if public_key.lower() in [tx['from'].lower(), tx['to'].lower()]:
@@ -330,14 +337,14 @@ class Wallet(AsyncWallet):
         async_method = super().get_balance
         return asyncio.run(async_method())
 
-    def estimate_gas(self, tx_data: TxData) -> Wei:
+    def estimate_gas(self, tx_params: TxParams) -> Wei:
         """
         Returns an estimating quantity of gas to perform transaction in Wei units
-        :param tx_data: Data of built transaction
+        :param tx_params: Params of built transaction
         :return: Estimated gas in Wei
         """
         async_method = super().estimate_gas
-        return asyncio.run(async_method(tx_data))
+        return asyncio.run(async_method(tx_params))
 
     def build_and_transact(
             self,
@@ -390,6 +397,7 @@ class Wallet(AsyncWallet):
             self,
             value: Wei,
             recipient: Optional[AddressLike] = None,
+            raw_data: Optional[Union[bytes, HexStr]] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
     ) -> TxParams:
@@ -397,21 +405,22 @@ class Wallet(AsyncWallet):
         Returns transaction's params
         :param value: A quantity of network currency to be paid in Wei units
         :param recipient: An address of recipient
+        :param raw_data: Transaction's data provided as HexStr or bytes
         :param gas: A quantity of gas to be spent
         :param gas_price: A price of gas in Wei units
         :return: Transaction's params
         """
         async_method = super().build_transaction_params
-        return asyncio.run(async_method(value, gas, gas_price))
+        return asyncio.run(async_method(value, recipient, raw_data, gas, gas_price))
 
-    def transact(self, tx_data: TxData) -> HexBytes:
+    def transact(self, tx_params: TxParams) -> HexBytes:
         """
         Performs transaction, using transaction data, which is got after building
-        :param tx_data: Built transaction's data
+        :param tx_params: Built transaction's params
         :return: Transaction's hash
         """
         async_method = super().transact
-        return asyncio.run(async_method(tx_data))
+        return asyncio.run(async_method(tx_params))
 
     async def transfer(
             self,
@@ -432,11 +441,3 @@ class Wallet(AsyncWallet):
         """
         async_method = super().transfer
         return asyncio.run(async_method(token, recipient, token_amount, gas, gas_price))
-
-    def get_transactions(self) -> list[TxData]:
-        """
-        Returns a list of transactions for the current wallet
-        :return: List of transactions
-        """
-        async_method = super().get_transactions
-        return asyncio.run(async_method())
