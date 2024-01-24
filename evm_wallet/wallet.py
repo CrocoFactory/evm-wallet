@@ -308,7 +308,7 @@ class AsyncWallet:
         Returns the explorer url for the given transaction hash
         :return: Explorer url for the given transaction
         """
-        explorer_url = f'Transaction: {self.network["explorer"]}/tx/{transaction_hash}'
+        explorer_url = f'{self.network["explorer"]}/tx/{transaction_hash}'
         return explorer_url
 
 
