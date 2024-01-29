@@ -4,15 +4,16 @@ from functools import lru_cache
 from typing import Literal, get_args, TypedDict, Type, Any
 from web3 import AsyncWeb3
 from web3.contract import AsyncContract
-from evm_wallet.types import ABI, AddressLike
+from web3.types import ABI
+from evm_wallet.types import AnyAddress
 
 
-def in_literal(value: Any, expected_type: Literal) -> bool:
+def _in_literal(value: Any, expected_type: Literal) -> bool:
     values = get_args(expected_type)
     return value in values
 
 
-def is_typed_dict(value: Any, typed_dict: Type[TypedDict]) -> bool:
+def _has_keys(value: Any, typed_dict: Type[TypedDict]) -> bool:
     typed_dict_keys = typed_dict.__annotations__.keys()
 
     try:
@@ -31,7 +32,8 @@ def get_erc20_abi() -> ABI:
         return json.load(file)
 
 
-def load_token_contract(provider: AsyncWeb3, address: AddressLike) -> AsyncContract:
+@lru_cache()
+def load_token_contract(provider: AsyncWeb3, address: AnyAddress) -> AsyncContract:
     address = provider.to_checksum_address(address)
     abi = get_erc20_abi()
     contract = provider.eth.contract(address=address, abi=abi)

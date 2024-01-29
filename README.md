@@ -86,6 +86,8 @@ You can perform the following actions, using evm-wallet:
 - **[create](#create)**
 - **[estimate_gas](#estimate_gas)**
 - **[get_balance](#get_balance)**
+- **[get_balance_of](#get_balance_of)**
+- **[get_decimals](#get_decimals)**
 - **[get_explorer_url](#get_explorer_url)**
 - **[get_transactions](#get_transactions)**
 - **[is_native_token](#is_native_token)**
@@ -136,15 +138,19 @@ and nonce are generated automatically. You also can also choose not to set a gas
 async def build_transaction_params(
         self,
         value: TokenAmount,
+        recipient: Optional[AnyAddress] = None,
+        raw_data: Optional[Union[bytes, HexStr]] = None,
         gas: Optional[int] = None,
         gas_price: Optional[Wei] = None
 ) -> TxParams:
     """
     Returns transaction's params
     :param value: A quantity of network currency to be paid in Wei units
+    :param recipient: An address of recipient
+    :param raw_data: Transaction's data provided as HexStr or bytes
     :param gas: A quantity of gas to be spent
     :param gas_price: A price of gas in Wei units
-    :return: TxParams
+    :return: Transaction's params
     """
     provider = self.provider
 
@@ -156,6 +162,13 @@ async def build_transaction_params(
         'gas': gas if gas else Wei(250_000),
         'gasPrice': gas_price if gas_price else await provider.eth.gas_price,
     }
+
+    if recipient:
+        tx_params['to'] = self.provider.to_checksum_address(recipient)
+
+    if raw_data:
+        tx_params['data'] = raw_data
+
     return tx_params
 ```
 
@@ -188,12 +201,31 @@ tx_data['gas'] = gas
 ```
 
 <h3 id="get_balance">get_balance</h3>
-You can get the balance of your wallet at any moment.
+You can get the balance of the native token of your wallet.
 
 ```python
 from evm_wallet import Wallet
 arb_wallet = Wallet('your_private_key', 'Arbitrum')
 balance = arb_wallet.get_balance()
+```
+
+<h3 id="get_balance_of">get_balance_of</h3>
+You can get the balance of specified token of your wallet
+
+```python
+from evm_wallet import Wallet
+arb_wallet = Wallet('your_private_key', 'Arbitrum')
+balance = arb_wallet.get_balance_of('0x82af49447d8a07e3bd95bd0d56f35241523fbab1', convert=True)
+print(balance)
+```
+
+<h3 id="get_decimals">get_decimals</h3>
+You can get the decimals of specified token 
+
+```python
+from evm_wallet import Wallet
+arb_wallet = Wallet('your_private_key', 'Arbitrum')
+decimals = arb_wallet.get_decimals('0x82af49447d8a07e3bd95bd0d56f35241523fbab1')
 ```
             
 <h3 id="get_explorer_url">get_explorer_url</h3>
@@ -278,8 +310,6 @@ usdt_amount = provider.to_wei(0.001, 'ether')
 
 arb_wallet.transfer(usdt, recipient, usdt_amount)
 ```
-
-
 
 # Installing evm-wallet
         

@@ -5,12 +5,12 @@ from web3.types import Wei, TxParams, TxData
 from hexbytes import HexBytes
 from .exceptions import InvalidNetworkInfo
 from .globals import NETWORK_MAP, ZERO_ADDRESS
-from .types import AddressLike, TokenAmount, Network, NetworkInfo, NetworkOrInfo
+from .types import AnyAddress, TokenAmount, Network, NetworkInfo, NetworkOrInfo
 from eth_account import Account
-from typing import Optional, Self, Union
+from typing import Optional, Self, Union, cast
 from eth_typing import ChecksumAddress, HexStr
 from web3.contract.contract import ContractFunction
-from .utils import in_literal, load_token_contract, is_typed_dict
+from .utils import _in_literal, load_token_contract, _has_keys
 
 
 class AsyncWallet:
@@ -18,6 +18,7 @@ class AsyncWallet:
     Async version of Wallet, interacting with your ethereum digital wallet.
     You can change a network of the wallet at any time using network setter
     """
+
     def __init__(
             self,
             private_key: str,
@@ -124,22 +125,25 @@ class AsyncWallet:
 
     @staticmethod
     def __validate_network(network: NetworkOrInfo = 'Ethereum') -> NetworkInfo:
-        if in_literal(network, Network):
+        if _in_literal(network, Network):
+            network = cast(Network, network)
             network_info = NetworkInfo(network=network, **NETWORK_MAP[network])
             return network_info
-        elif is_typed_dict(network, NetworkInfo):
-            return network
+        elif _has_keys(network, NetworkInfo):
+            return cast(NetworkInfo, network)
         else:
             raise InvalidNetworkInfo(network)
 
-    async def get_balance(self) -> int:
+    async def get_balance(self, to_wei: bool = False) -> float | Wei:
         """
-        Returns the balance of the current account in ethereum units.
+        Returns the balance of the current account in ethereum or wei units.
+        :param to_wei: Whether to convert balance to Wei units (default: False)
         :return: Balance of the current account in ethereum units
         """
         provider = self.provider
         balance = await provider.eth.get_balance(self.public_key)
-        return provider.from_wei(balance, 'ether')
+
+        return balance if to_wei else provider.from_wei(balance, 'ether')
 
     async def estimate_gas(self, tx_params: TxParams) -> Wei:
         """
@@ -179,21 +183,20 @@ class AsyncWallet:
         :param gas_price: A price of gas in Wei units
         :return: Transaction's hash
         """
-        provider = self.provider
         tx_params = await self.build_transaction_params(value=value, gas=gas, gas_price=gas_price)
-        tx_data = await closure.build_transaction(tx_params)
+        tx_params = await closure.build_transaction(tx_params)
 
         if not gas:
-            del tx_data['gas']
-            gas = Wei(int(await provider.eth.estimate_gas(tx_data)))
-            tx_data['gas'] = gas
+            del tx_params['gas']
+            gas = await self.estimate_gas(tx_params)
+            tx_params['gas'] = gas
 
-        return await self.transact(tx_data)
+        return await self.transact(tx_params)
 
     async def approve(
             self,
-            token: AddressLike,
-            contract_address: AddressLike,
+            token: AnyAddress,
+            contract_address: AnyAddress,
             token_amount: TokenAmount
     ) -> HexBytes:
         """
@@ -204,6 +207,7 @@ class AsyncWallet:
         :return: Transaction hash
         """
         token = load_token_contract(self.provider, token)
+        contract_address = self.provider.to_checksum_address(contract_address)
         return await self.build_and_transact(
             token.functions.approve(contract_address, token_amount)
         )
@@ -211,7 +215,7 @@ class AsyncWallet:
     async def build_transaction_params(
             self,
             value: TokenAmount,
-            recipient: Optional[AddressLike] = None,
+            recipient: Optional[AnyAddress] = None,
             raw_data: Optional[Union[bytes, HexStr]] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
@@ -237,7 +241,7 @@ class AsyncWallet:
         }
 
         if recipient:
-            tx_params['to'] = recipient
+            tx_params['to'] = self.provider.to_checksum_address(recipient)
 
         if raw_data:
             tx_params['data'] = raw_data
@@ -254,13 +258,13 @@ class AsyncWallet:
         signed_transaction = provider.eth.account.sign_transaction(tx_params, self.private_key)
         tx_hash = await provider.eth.send_raw_transaction(signed_transaction.rawTransaction)
         self.__nonce += 1
-        
+
         return tx_hash
 
     async def transfer(
             self,
-            token: AddressLike,
-            recipient: AddressLike,
+            token: AnyAddress,
+            recipient: AnyAddress,
             token_amount: TokenAmount,
             gas: Optional[Wei] = None,
             gas_price: Optional[Wei] = None
@@ -278,6 +282,32 @@ class AsyncWallet:
         recipient = self.provider.to_checksum_address(recipient)
         closure = await token_contract.functions.transfer(recipient, token_amount)
         return await self.build_and_transact(closure, Wei(0), gas, gas_price)
+
+    async def get_balance_of(self, token: AnyAddress, convert: bool = True) -> float:
+        """
+        Returns balance of specified token in ethereum or wei units
+        :param token: An address of token
+        :param convert: Whether to divide token balance by its decimals (default: True)
+        :return: Balance of specified token in ethereum or wei units
+        """
+        token_contract = load_token_contract(self.provider, token)
+        balance = await token_contract.functions.balanceOf(self.public_key).call()
+
+        if convert:
+            decimals = await self.get_decimals(token)
+            balance /= 10**decimals
+
+        return balance
+
+    async def get_decimals(self, token: AnyAddress) -> int:
+        """
+        Returns decimals of specified token
+        :param token: An address of token 
+        :return: Decimals of specified token 
+        """
+        token = load_token_contract(self.provider, token)
+        decimals = await token.functions.decimals().call()
+        return decimals
 
     def get_transactions(self) -> list[TxData]:
         """
@@ -308,6 +338,11 @@ class AsyncWallet:
         Returns the explorer url for the given transaction hash
         :return: Explorer url for the given transaction
         """
+        if isinstance(transaction_hash, HexBytes):
+            transaction_hash = transaction_hash.hex()
+        else:
+            raise TypeError(f"Invalid transaction hash type: {type(transaction_hash)}")
+
         explorer_url = f'{self.network["explorer"]}/tx/{transaction_hash}'
         return explorer_url
 
@@ -317,6 +352,7 @@ class Wallet(AsyncWallet):
     Interacts with your ethereum digital wallet.
     You can change a network of the wallet at any time using network setter
     """
+
     def __init__(
             self,
             private_key: str,
@@ -329,7 +365,7 @@ class Wallet(AsyncWallet):
         """
         super().__init__(private_key, network)
 
-    def get_balance(self) -> int:
+    def get_balance(self, to_wei: bool = False) -> float | Wei:
         """
         Returns the balance of the current account in ethereum units.
         :return: Balance of the current account in ethereum units
@@ -379,8 +415,8 @@ class Wallet(AsyncWallet):
 
     def approve(
             self,
-            token: AddressLike,
-            contract_address: AddressLike,
+            token: AnyAddress,
+            contract_address: AnyAddress,
             token_amount: TokenAmount
     ) -> HexBytes:
         """
@@ -396,7 +432,7 @@ class Wallet(AsyncWallet):
     def build_transaction_params(
             self,
             value: Wei,
-            recipient: Optional[AddressLike] = None,
+            recipient: Optional[AnyAddress] = None,
             raw_data: Optional[Union[bytes, HexStr]] = None,
             gas: Optional[int] = None,
             gas_price: Optional[Wei] = None
@@ -422,10 +458,10 @@ class Wallet(AsyncWallet):
         async_method = super().transact
         return asyncio.run(async_method(tx_params))
 
-    async def transfer(
+    def transfer(
             self,
-            token: AddressLike,
-            recipient: AddressLike,
+            token: AnyAddress,
+            recipient: AnyAddress,
             token_amount: TokenAmount,
             gas: Optional[Wei] = None,
             gas_price: Optional[Wei] = None
@@ -441,3 +477,22 @@ class Wallet(AsyncWallet):
         """
         async_method = super().transfer
         return asyncio.run(async_method(token, recipient, token_amount, gas, gas_price))
+
+    def get_balance_of(self, token: AnyAddress, convert: bool = False) -> float:
+        """
+        Returns balance of specified token in ethereum or wei units
+        :param token: An address of token
+        :param convert: Whether to divide token balance by its decimals (default: False)
+        :return: Balance of specified token in ethereum or wei units
+        """
+        async_method = super().get_balance_of
+        return asyncio.run(async_method(token))
+
+    def get_decimals(self, token: AnyAddress) -> int:
+        """
+        Returns decimals of specified token
+        :param token: An address of token
+        :return: Decimals of specified token
+        """
+        async_method = super().get_decimals
+        return asyncio.run(async_method(token))
