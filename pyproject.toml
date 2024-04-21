@@ -1,8 +1,8 @@
 [tool.poetry]
 name = 'evm_wallet'
-version = '1.2.0'
+version = '2.0.0'
 description = 'The package, containing wrapper over EVM operations for interacting through Wallet entities'
-authors = ['Alexey <abelenkov2006@gmail.com>']
+authors = ['Alexey <axbelenkov@gmail.com>']
 license = 'MIT'
 readme = 'README.md'
 repository = 'https://github.com/blnkoff/evm-wallet'
@@ -24,10 +24,11 @@ python = '^3.11'
 web3 = "^6.12.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
 pytest-asyncio = "^0.23.2"
 build = "^1.0.3"
 twine = "^4.0.2"
+python-dotenv = "^1.0.1"
+pytest = "^8.1.1"
 
 [build-system]
 requires = ['poetry-core']

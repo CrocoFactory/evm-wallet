@@ -2,7 +2,6 @@
 
 [![Croco Logo](https://i.ibb.co/G5Pjt6M/logo.png)](https://t.me/crocofactory)
 
-
 The package, containing wrapper over EVM operations for interacting through Wallet entities.
 
 - **[Telegram channel](https://t.me/crocofactory)**
@@ -22,37 +21,39 @@ evm-wallet's source code is made available under the [MIT License](LICENSE)
 ##  Quick start
 You can quickly use supported networks as RPC:  
 
-| Network         | Native Token | Testnet  |
-|-----------------|--------------|----------|
-| Arbitrum Goerli | AGOR         | ✅        |
-| Arbitrum        | ETH          | ❌        |
-| Avalanche       | AVAX         | ❌        |
-| Base            | ETH          | ❌        |
-| Base Goerli     | ETH          | ✅        |
-| BSC             | BNB          | ❌        |
-| BSC Testnet     | tBNB         | ✅        |
-| Ethereum        | ETH          | ❌        |
-| Fantom          | FTM          | ❌        |
-| Fantom Testnet  | FTM          | ✅        |
-| Fuji            | AVAX         | ✅        |
-| Goerli          | GETH         | ✅        |
-| Linea           | ETH          | ❌        |
-| Linea Goerli    | ETH          | ✅        |
-| Mumbai          | MATIC        | ✅        |
-| opBNB           | BNB          | ❌        |
-| opBNB Testnet   | BNB          | ✅        |
-| Optimism        | ETH          | ❌        |
-| Optimism Goerli | OGOR         | ✅        |
-| Polygon         | MATIC        | ❌        |
-| Sepolia         | SETH         | ❌        |
-| zkSync          | ETH          | ❌        |
-
-
+| Network          | Native Token | Testnet |
+|------------------|--------------|---------|
+| Arbitrum Goerli  | ETH          | ✅       |
+| Arbitrum Sepolia | ETH          | ✅       |
+| Arbitrum         | ETH          | ❌       |
+| Avalanche        | AVAX         | ❌       |
+| Base             | ETH          | ❌       |
+| Base Sepolia     | ETH          | ✅       |
+| Base Goerli      | ETH          | ✅       |
+| BSC              | BNB          | ❌       |
+| BSC Testnet      | BNB          | ✅       |
+| Ethereum         | ETH          | ❌       |
+| Fantom           | FTM          | ❌       |
+| Fantom Testnet   | FTM          | ✅       |
+| Fuji             | AVAX         | ✅       |
+| Goerli           | ETH          | ✅       |
+| Linea            | ETH          | ❌       |
+| Linea Goerli     | ETH          | ✅       |
+| Linea Sepolia    | ETH          | ✅       |
+| Mumbai           | MATIC        | ✅       |
+| opBNB            | BNB          | ❌       |
+| opBNB Testnet    | BNB          | ✅       |
+| Optimism         | ETH          | ❌       |
+| Optimism Sepolia | ETH          | ✅       |
+| Optimism Goerli  | ETH          | ✅       |
+| Polygon          | MATIC        | ❌       |
+| Sepolia          | ETH          | ❌       |
+| zkSync           | ETH          | ❌       |
 
 For specifying network you only need to pass network's name.
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
+my_wallet = Wallet('your_private_key', 'Arbitrum')
 ```
 
 If you use unsupported network, you can specify it using type NetworkInfo
@@ -61,13 +62,13 @@ from evm_wallet import Wallet, NetworkInfo
 
 network_info = NetworkInfo(
     network='Custom',
-    rpc='https://custom.publicnode.com',
+    rpc='wss://custom.publicnode.com',
     token='CUSTOM'
 )
 custom_wallet = Wallet('your_private_key', network_info)
 ```
 
-evm-wallet also asynchronous approach
+Library supports asynchronous approach
 ```python
 from evm_wallet import AsyncWallet
 
@@ -77,19 +78,18 @@ async def validate_balance():
     assert balance > 0.1
 ```
      
-<h2 id="#quick-overview">Quick overview</h2> 
+<h2 id="quick-overview">Quick overview</h2> 
 You can perform the following actions, using evm-wallet:
 
 - **[approve](#approve)**
 - **[build_and_transact](#build_and_transact)**
-- **[build_transaction_params](#build_transaction_params)**
+- **[build_tx_params](#build_tx_params)**
 - **[create](#create)**
 - **[estimate_gas](#estimate_gas)**
 - **[get_balance](#get_balance)**
 - **[get_balance_of](#get_balance_of)**
-- **[get_decimals](#get_decimals)**
+- **[get_token](#get_token)**
 - **[get_explorer_url](#get_explorer_url)**
-- **[get_transactions](#get_transactions)**
 - **[is_native_token](#is_native_token)**
 - **[transact](#transact)**
 - **[transfer](#transfer)**
@@ -100,14 +100,14 @@ When you want to spend non-native tokens, for instance USDT, you need to perform
 
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
 stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
-usdt = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+usdt = my_wallet.get_token('0xdAC17F958D2ee523a2206206994597C13D831ec7')
 usdt_amount = provider.to_wei(0.001, 'ether')
 
-arb_wallet.approve(usdt, stargate_router, usdt_amount)
+my_wallet.approve(usdt, stargate_router, usdt_amount)
 ```
 
 <h3 id="build_and_transact">build_and_transact</h3>
@@ -117,59 +117,38 @@ awaited
 
 ```python
 from evm_wallet import Wallet
-from web3.contract import Contract
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
-stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
 stargate_abi = [...]
-stargate = Contract(stargate_router, stargate_abi)
+stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
+stargate = my_wallet.provider.eth.contract(stargate_router, abi=stargate_abi)
 
 eth_amount = provider.to_wei(0.001, 'ether')
 closure = stargate.functions.swapETH(...) 
-arb_wallet.build_and_transact(closure, eth_amount)
+my_wallet.build_and_transact(closure, eth_amount)
 ```
 
-<h3 id="build_transaction_params">build_transaction_params</h3>
-You can use build_transaction_params to quickly get dictionary of params for building transaction. Public key, chain id 
+<h3 id="build_tx_params">build_tx_params</h3>
+You can use build_tx_params to quickly get dictionary of params for building transaction. Public key, chain id 
 and nonce are generated automatically. You also can also choose not to set a gas and the gas price
 
 ```python
-async def build_transaction_params(
-        self,
-        value: TokenAmount,
-        recipient: Optional[AnyAddress] = None,
-        raw_data: Optional[Union[bytes, HexStr]] = None,
-        gas: Optional[int] = None,
-        gas_price: Optional[Wei] = None
-) -> TxParams:
-    """
-    Returns transaction's params
-    :param value: A quantity of network currency to be paid in Wei units
-    :param recipient: An address of recipient
-    :param raw_data: Transaction's data provided as HexStr or bytes
-    :param gas: A quantity of gas to be spent
-    :param gas_price: A price of gas in Wei units
-    :return: Transaction's params
-    """
-    provider = self.provider
+from evm_wallet import Wallet
+my_wallet = Wallet('your_private_key', 'BSC')
 
-    tx_params = {
-        'from': self.public_key,
-        'chainId': self.__chain_id,
-        'nonce': self.nonce,
-        'value': value,
-        'gas': gas if gas else Wei(250_000),
-        'gasPrice': gas_price if gas_price else await provider.eth.gas_price,
-    }
+my_wallet.build_tx_params(0)
+```
 
-    if recipient:
-        tx_params['to'] = self.provider.to_checksum_address(recipient)
-
-    if raw_data:
-        tx_params['data'] = raw_data
-
-    return tx_params
+```json
+{
+  "from": "0xe977Fa8D8AE7D3D6e28c17A868EF04bD301c583f", 
+  "chainId": 56, 
+  "nonce": 168, 
+  "value": 0, 
+  "gas": 250000, 
+  "gasPrice": 1000000000
+}
 ```
 
 <h3 id="create">create</h3>
@@ -185,19 +164,21 @@ When you want to estimate an amount of gas to send a transaction, you can use es
 
 ```python
 from evm_wallet import Wallet
-from web3.contract import Contract
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
 stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
 stargate_abi = [...]
 eth_amount = provider.to_wei(0.001, 'ether')
 
-stargate = Contract(stargate_router, stargate_abi)
-params = arb_wallet.build_transaction_params(eth_amount)
-tx_data = stargate.functions.swapETH(...).buildTransaction(params)
-gas = arb_wallet.estimate_gas(tx_data)
-tx_data['gas'] = gas
+stargate = my_wallet.provider.eth.contract(stargate_router, abi=stargate_abi)
+params = my_wallet.build_tx_params(eth_amount)
+tx_params = stargate.functions.swapETH(...).buildTransaction(params)
+gas = my_wallet.estimate_gas(tx_params)
+tx_params['gas'] = gas
+
+my_wallet.transact(tx_params)
 ```
 
 <h3 id="get_balance">get_balance</h3>
@@ -205,8 +186,8 @@ You can get the balance of the native token of your wallet.
 
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-balance = arb_wallet.get_balance()
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+balance = my_wallet.get_balance()
 ```
 
 <h3 id="get_balance_of">get_balance_of</h3>
@@ -214,18 +195,22 @@ You can get the balance of specified token of your wallet
 
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-balance = arb_wallet.get_balance_of('0x82af49447d8a07e3bd95bd0d56f35241523fbab1', convert=True)
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+
+usdt = my_wallet.get_token('0xdAC17F958D2ee523a2206206994597C13D831ec7')
+balance = my_wallet.get_balance_of(usdt, convert=True)
 print(balance)
 ```
 
-<h3 id="get_decimals">get_decimals</h3>
-You can get the decimals of specified token 
+<h3 id="get_token">get_token</h3>
+You can get the ERC20Token instance, containing information about symbol and decimals. Also this function used for 
+another instance-methods of Wallet.
 
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-decimals = arb_wallet.get_decimals('0x82af49447d8a07e3bd95bd0d56f35241523fbab1')
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+usdt = my_wallet.get_token('0xdAC17F958D2ee523a2206206994597C13D831ec7')
+print(usdt.decimals)
 ```
             
 <h3 id="get_explorer_url">get_explorer_url</h3>
@@ -234,8 +219,8 @@ You can get entire wallet's list of transactions
 ```python
 from evm_wallet import Wallet
 from web3.contract import Contract
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
 stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
 stargate_abi = [...]
@@ -243,18 +228,8 @@ stargate = Contract(stargate_router, stargate_abi)
 
 eth_amount = provider.to_wei(0.001, 'ether')
 closure = stargate.functions.swapETH(...) 
-tx_hash = arb_wallet.build_and_transact(closure, eth_amount)
-print(arb_wallet.get_explorer_url(tx_hash))
-```
-
-
-<h3 id="get_transactions">get_transactions</h3>
-You can get entire wallet's list of transactions
-
-```python
-from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-transactions = arb_wallet.get_transactions()
+tx_hash = my_wallet.build_and_transact(closure, eth_amount)
+print(my_wallet.get_explorer_url(tx_hash))
 ```
 
 <h3 id="is_native_token">is_native_token</h3>
@@ -263,15 +238,15 @@ If you want to check, if the specific token is native token of network, you can 
 You can use any case in a token's ticker.
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-assert arb_wallet.is_native_token('eTh')
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+assert my_wallet.is_native_token('eTh')
 ```
 
 Or you can pass zero-address meaning address of network's native token.
 ```python
 from evm_wallet import Wallet, ZERO_ADDRESS
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-assert arb_wallet.is_native_token(ZERO_ADDRESS)
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+assert my_wallet.is_native_token(ZERO_ADDRESS)
 ```
 
 <h3 id="transact">transact</h3>
@@ -280,20 +255,21 @@ After building transaction you can perform it, passing transaction data to trans
 ```python
 from evm_wallet import Wallet
 from web3.contract import Contract
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
 stargate_router = '0x8731d54E9D02c286767d56ac03e8037C07e01e98'
 stargate_abi = [...]
 eth_amount = provider.to_wei(0.001, 'ether')
 
-stargate = Contract(stargate_router, stargate_abi)
-params = arb_wallet.build_transaction_params(eth_amount)
+stargate = my_wallet.provider.eth.contract(stargate_router, abi=stargate_abi)
+params = my_wallet.build_tx_params(eth_amount)
 tx_data = stargate.functions.swapETH(...).buildTransaction(params)
-gas = arb_wallet.estimate_gas(tx_data)
+gas = my_wallet.estimate_gas(tx_data)
 tx_data['gas'] = gas
 
-arb_wallet.transact(tx_data)
+my_wallet.transact(tx_data)
 ```
 
 <h3 id="transfer">transfer</h3>
@@ -301,14 +277,14 @@ You can transfer tokens to another wallet
 
 ```python
 from evm_wallet import Wallet
-arb_wallet = Wallet('your_private_key', 'Arbitrum')
-provider = arb_wallet.provider
+my_wallet = Wallet('your_private_key', 'Arbitrum')
+provider = my_wallet.provider
 
 recipient = '0xe977Fa8D8AE7D3D6e28c17A868EF04bD301c583f'
-usdt = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+usdt = my_wallet.get_token('0xdAC17F958D2ee523a2206206994597C13D831ec7')
 usdt_amount = provider.to_wei(0.001, 'ether')
 
-arb_wallet.transfer(usdt, recipient, usdt_amount)
+my_wallet.transfer(usdt, recipient, usdt_amount)
 ```
 
 # Installing evm-wallet
