@@ -224,9 +224,9 @@ class _BaseWallet(ABC):
         self.__private_key = private_key
         self.__account = Account.from_key(private_key)
         self.__public_key = self._provider.to_checksum_address(self.__account.address)
-        self.__nonce = temp_provider.eth.get_transaction_count(self.__public_key)
+        self._nonce = temp_provider.eth.get_transaction_count(self.__public_key)
 
-        self.__network = network_info
+        self._network = network_info
 
     @classmethod
     def create(cls, network: Network | NetworkInfo = 'Ethereum') -> Self:
@@ -253,7 +253,7 @@ class _BaseWallet(ABC):
         Current network. You can change the network of the wallet at any time using network setter
         :return: Dictionary containing information about the network represented as type NetworkInfo
         """
-        return self.__network
+        return self._network
 
     @network.setter
     def network(self, value: Network | NetworkInfo):
@@ -267,7 +267,7 @@ class _BaseWallet(ABC):
 
         network_info = self.__validate_network(value)
         rpc = network_info['rpc']
-        self.__network = network_info
+        self._network = network_info
 
         temp_provider = Web3(Web3.HTTPProvider(rpc))
         self.__validate_chain_id(network_info, temp_provider)
@@ -277,7 +277,7 @@ class _BaseWallet(ABC):
         else:
             self._provider = temp_provider
 
-        self.__nonce = temp_provider.eth.get_transaction_count(self.__public_key)
+        self._nonce = temp_provider.eth.get_transaction_count(self.__public_key)
 
     @property
     def private_key(self) -> str:
@@ -301,7 +301,7 @@ class _BaseWallet(ABC):
         Nonce of the current wallet.
         :return: Nonce of the current wallet
         """
-        return self.__nonce
+        return self._nonce
 
     @property
     def native_token(self) -> str:

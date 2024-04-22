@@ -156,7 +156,7 @@ class Wallet(_BaseWallet):
         provider = self.provider
         signed_transaction = provider.eth.account.sign_transaction(tx_params, self.private_key)
         tx_hash = provider.eth.send_raw_transaction(signed_transaction.rawTransaction)
-        self.__nonce += 1
+        self._nonce += 1
 
         return tx_hash
 
