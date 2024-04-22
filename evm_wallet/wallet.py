@@ -84,8 +84,13 @@ class Wallet(_BaseWallet):
         :param gas_price: Price of gas in Wei units
         :return: Transaction's hash
         """
-        tx_params = self.build_tx_params(value=value, gas=gas, gas_price=gas_price)
+        gas_ = Wei(300_000) if not gas else gas
+        tx_params = self.build_tx_params(value=value, gas=gas_, gas_price=gas_price)
         tx_params = closure.build_transaction(tx_params)
+
+        if not gas:
+            gas = self.estimate_gas(tx_params)
+            tx_params['gas'] = gas
 
         return self.transact(tx_params)
 
@@ -116,7 +121,7 @@ class Wallet(_BaseWallet):
             value: TokenAmount,
             recipient: Optional[AnyAddress] = None,
             raw_data: Optional[bytes | HexStr] = None,
-            gas: Optional[Wei] = Wei(300_000),
+            gas: Wei = Wei(300_000),
             gas_price: Optional[Wei] = None
     ) -> TxParams:
         """

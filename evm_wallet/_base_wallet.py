@@ -424,7 +424,7 @@ class _BaseWallet(ABC):
             value: TokenAmount,
             recipient: Optional[AnyAddress] = None,
             raw_data: Optional[bytes | HexStr] = None,
-            gas: Optional[Wei] = Wei(300_000),
+            gas: Wei = Wei(300_000),
             gas_price: Optional[Wei] = None
     ) -> TxParams:
         pass
