@@ -1,5 +1,5 @@
-import json
 import os
+import json
 from functools import lru_cache
 from typing import ClassVar, cast, Self, Optional
 from eth_account import Account
@@ -19,158 +19,184 @@ ZERO_ADDRESS = Web3.to_checksum_address("0x0000000000000000000000000000000000000
 class _BaseWallet(ABC):
     __network_map: ClassVar[dict[Network, NetworkInfo]] = {
         'Arbitrum Goerli': {
+            'network': 'Arbitrum Goerli',
             'chain_id': 421613,
-            'rpc': 'wss://arbitrum-goerli-rpc.publicnode.com',
+            'rpc': 'https://arbitrum-goerli-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://goerli.arbiscan.io'
         },
         'Arbitrum Sepolia': {
+            'network': 'Arbitrum Sepolia',
             'chain_id': 421614,
-            'rpc': 'wss://arbitrum-sepolia-rpc.publicnode.com',
+            'rpc': 'https://arbitrum-sepolia-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://sepolia.arbiscan.io'
         },
         'Arbitrum': {
+            'network': 'Arbitrum',
             'chain_id': 42161,
-            'rpc': 'wss://arbitrum-one-rpc.publicnode.com',
+            'rpc': 'https://arbitrum-one-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://arbiscan.io'
         },
         'Avalanche': {
+            'network': 'Avalanche',
             'chain_id': 43114,
-            'rpc': 'wss://avalanche-c-chain-rpc.publicnode.com',
+            'rpc': 'https://avalanche-c-chain-rpc.publicnode.com',
             'token': 'AVAX',
             'explorer': 'https://snowtrace.io/'
         },
         'Base': {
+            'network': 'Base',
             'chain_id': 8453,
-            'rpc': 'wss://base-rpc.publicnode.com',
+            'rpc': 'https://base-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://basescan.org/'
         },
         'Base Goerli': {
+            'network': 'Base Goerli',
             'chain_id': 84531,
             'rpc': 'https://base-goerli.public.blastapi.io',
             'token': 'ETH',
             'explorer': 'https://goerli.basescan.org/'
         },
         'Base Sepolia': {
+            'network': 'Base Sepolia',
             'chain_id': 84532,
-            'rpc': 'wss://base-sepolia-rpc.publicnode.com',
+            'rpc': 'https://base-sepolia-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://sepolia.basescan.org/'
         },
         'BSC': {
+            'network': 'BSC',
             'chain_id': 56,
-            'rpc': 'wss://bsc-rpc.publicnode.com',
+            'rpc': 'https://bsc-rpc.publicnode.com',
             'token': 'BNB',
             'explorer': 'https://bscscan.com'
         },
         'BSC Testnet': {
+            'network': 'BSC Testnet',
             'chain_id': 97,
-            'rpc': 'wss://bsc-testnet-rpc.publicnode.com',
+            'rpc': 'https://bsc-testnet-rpc.publicnode.com',
             'token': 'BNB',
             'explorer': 'https://testnet.bscscan.com'
         },
         'Ethereum': {
+            'network': 'Ethereum',
             'chain_id': 1,
-            'rpc': 'wss://ethereum-rpc.publicnode.com',
+            'rpc': 'https://ethereum-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://etherscan.io'
         },
         'Fantom': {
+            'network': 'Fantom',
             'chain_id': 250,
-            'rpc': 'wss://fantom-rpc.publicnode.com',
+            'rpc': 'https://fantom-rpc.publicnode.com',
             'token': 'FTM',
             'explorer': 'https://ftmscan.com/'
         },
         'Fantom Testnet': {
+            'network': 'Fantom Testnet',
             'chain_id': 4002,
-            'rpc': 'wss://fantom-testnet-rpc.publicnode.com',
+            'rpc': 'https://fantom-testnet-rpc.publicnode.com',
             'token': 'FTM',
             'explorer': 'https://testnet.ftmscan.com/'
         },
         'Fuji': {
+            'network': 'Fuji',
             'chain_id': 43113,
-            'rpc': 'wss://avalanche-fuji-c-chain-rpc.publicnode.com',
+            'rpc': 'https://avalanche-fuji-c-chain-rpc.publicnode.com',
             'token': 'AVAX',
             'explorer': 'https://testnet.snowtrace.io'
         },
         'Goerli': {
+            'network': 'Goerli',
             'chain_id': 5,
-            'rpc': 'wss://goerli.gateway.tenderly.co',
+            'rpc': 'https://goerli.gateway.tenderly.co',
             'token': 'ETH',
             'explorer': 'https://goerli.etherscan.io'
         },
         'Linea': {
+            'network': 'Linea',
             'chain_id': 59144,
-            'rpc': 'wss://linea.drpc.org',
+            'rpc': 'https://linea.drpc.org',
             'token': 'ETH',
             'explorer': 'https://lineascan.build/'
         },
         'Linea Goerli': {
+            'network': 'Linea Goerli',
             'chain_id': 59140,
-            'rpc': 'wss://linea-goerli.drpc.org',
+            'rpc': 'https://linea-goerli.drpc.org',
             'token': 'ETH',
             'explorer': 'https://goerli.lineascan.build/'
         },
         'Mumbai': {
+            'network': 'Mumbai',
             'chain_id': 80001,
-            'rpc': 'wss://polygon-mumbai-bor-rpc.publicnode.com',
+            'rpc': 'https://polygon-mumbai-bor-rpc.publicnode.com',
             'token': 'MATIC',
             'explorer': 'https://mumbai.polygonscan.com/'
         },
         'opBNB': {
+            'network': 'opBNB',
             'chaind_id': 204,
-            'rpc': 'wss://opbnb-rpc.publicnode.com',
+            'rpc': 'https://opbnb-rpc.publicnode.com',
             'token': 'BNB',
             'explorer': 'https://opbnb.bscscan.com/'
         },
         'opBNB Testnet': {
+            'network': 'opBNB Testnet',
             'chaind_id': 5611,
-            'rpc': 'wss://opbnb-testnet-rpc.publicnode.com',
+            'rpc': 'https://opbnb-testnet-rpc.publicnode.com',
             'token': 'BNB',
             'explorer': 'https://opbnb-testnet.bscscan.com'
         },
         'Optimism': {
+            'network': 'Optimism',
             'chain_id': 10,
-            'rpc': 'wss://optimism-rpc.publicnode.com',
+            'rpc': 'https://optimism-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://optimistic.etherscan.io'
         },
         'Optimism Sepolia': {
+            'network': 'Optimism Sepolia',
             'chaind_id': 11155420,
-            'rpc': 'wss://optimism-sepolia-rpc.publicnode.com',
+            'rpc': 'https://optimism-sepolia-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://sepolia-optimism.etherscan.io/'
         },
         'Optimism Goerli': {
+            'network': 'Optimism Goerli',
             'chain_id': 420,
-            'rpc': 'wss://optimism-testnet.drpc.org',
+            'rpc': 'https://optimism-testnet.drpc.org',
             'token': 'ETH',
             'explorer': 'https://goerli-optimism.etherscan.io'
         },
         'Polygon': {
+            'network': 'Polygon',
             'chain_id': 137,
-            'rpc': 'wss://polygon-bor-rpc.publicnode.com',
+            'rpc': 'https://polygon-bor-rpc.publicnode.com',
             'token': 'MATIC',
             'explorer': 'https://polygonscan.com'
         },
         'Sepolia': {
+            'network': 'Sepolia',
             'chain_id': 11155111,
-            'rpc': 'wss://ethereum-sepolia-rpc.publicnode.com',
+            'rpc': 'https://ethereum-sepolia-rpc.publicnode.com',
             'token': 'ETH',
             'explorer': 'https://sepolia.etherscan.io'
         },
         'Scroll': {
-          'chaind_id': 534352,
-          'rpc': 'wss://scroll.drpc.org',
-          'token': 'ETH',
-          'explorer': 'https://scrollscan.com'
+            'network': 'Scroll',
+            'chaind_id': 534352,
+            'rpc': 'https://scroll.drpc.org',
+            'token': 'ETH',
+            'explorer': 'https://scrollscan.com'
         },
         'zkSync': {
+            'network': 'zkSync',
             'chain_id': 324,
-            'rpc': 'wss://zksync.drpc.org',
+            'rpc': 'https://zksync.drpc.org',
             'token': 'ETH',
             'explorer': 'https://explorer.zksync.io'
         }
@@ -185,23 +211,16 @@ class _BaseWallet(ABC):
         network_info = self.__validate_network(network)
         rpc = network_info['rpc']
 
-        is_websocket_rpc = rpc.startswith('wss://')
-
-        if is_websocket_rpc:
-            temp_provider = Web3(Web3.WebsocketProvider(rpc))
-        else:
-            temp_provider = Web3(Web3.HTTPProvider(rpc))
+        temp_provider = Web3(Web3.HTTPProvider(rpc))
 
         if is_async:
-            if is_websocket_rpc:
-                self._provider = AsyncWeb3(AsyncWeb3.WebsocketProvider(rpc))
-            else:
-                self._provider = AsyncWeb3(AsyncWeb3.HTTPProvider(rpc))
+            self._provider = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(rpc))
         else:
             self._provider = temp_provider
 
         self.__validate_chain_id(network_info, temp_provider)
 
+        self.__is_async = is_async
         self.__private_key = private_key
         self.__account = Account.from_key(private_key)
         self.__public_key = self._provider.to_checksum_address(self.__account.address)
@@ -244,12 +263,20 @@ class _BaseWallet(ABC):
                       type NetworkInfo
         :return: None
         """
+        is_async = self.__is_async
+
         network_info = self.__validate_network(value)
         rpc = network_info['rpc']
         self.__network = network_info
-        self._provider = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(rpc))
 
         temp_provider = Web3(Web3.HTTPProvider(rpc))
+        self.__validate_chain_id(network_info, temp_provider)
+
+        if is_async:
+            self._provider = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(rpc))
+        else:
+            self._provider = temp_provider
+
         self.__nonce = temp_provider.eth.get_transaction_count(self.__public_key)
 
     @property
@@ -308,7 +335,7 @@ class _BaseWallet(ABC):
     ) -> NetworkInfo:
         if _in_literal(network, Network):
             network = cast(Network, network)
-            network_info = NetworkInfo(network=network, **cls.__network_map[network])
+            network_info = NetworkInfo(**cls.__network_map[network])
         elif _has_keys(network, NetworkInfo):
             network_info = cast(NetworkInfo, network)
         else:
@@ -365,11 +392,11 @@ class _BaseWallet(ABC):
         pass
 
     @abstractmethod
-    def get_balance(self, to_wei: bool = True) -> float | Wei:
+    def get_balance(self, from_wei: bool = False) -> float | Wei:
         pass
 
     @abstractmethod
-    def estimate_gas(self, tx_params: TxParams) -> Wei:
+    def estimate_gas(self, tx_params: TxParams, from_wei: bool = False) -> Wei:
         pass
 
     @abstractmethod

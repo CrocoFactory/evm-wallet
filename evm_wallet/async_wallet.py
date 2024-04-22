@@ -34,26 +34,27 @@ class AsyncWallet(_BaseWallet):
     def _load_token_contract(self, address: AnyAddress) -> AsyncContract:
         return super()._load_token_contract(address)
 
-    async def get_balance(self, to_wei: bool = True) -> float | Wei:
+    async def get_balance(self, from_wei: bool = False) -> float | Wei:
         """
         Returns the balance of the current account in ethereum or wei units.
-        :param to_wei: Whether to convert balance to Wei units (default: False)
+        :param from_wei: Whether to convert balance to Ether units (default: False)
         :return: Balance of the current account in ethereum units
         """
         provider = self.provider
         balance = await provider.eth.get_balance(self.public_key)
 
-        return balance if to_wei else provider.from_wei(balance, 'ether')
+        return balance if not from_wei else provider.from_wei(balance, 'ether')
 
-    async def estimate_gas(self, tx_params: TxParams) -> Wei:
+    async def estimate_gas(self, tx_params: TxParams, from_wei: bool = False) -> Wei:
         """
         Returns an estimating quantity of gas to perform transaction in Wei units
         :param tx_params: Params of built transaction
+        :param from_wei: Whether to convert balance to Ether units (default: False)
         :return: Estimated gas in Wei
         """
         provider = self.provider
         gas = Wei(int(await provider.eth.estimate_gas(tx_params)))
-        return gas
+        return gas if not from_wei else provider.from_wei(gas, 'ether')
 
     async def build_and_transact(
             self,
@@ -148,7 +149,7 @@ class AsyncWallet(_BaseWallet):
 
     async def transact(self, tx_params: TxParams) -> HexBytes:
         """
-        Performs transaction, using transaction data, which is got after building
+        Performs transaction, using transaction params, which are got after building
         :param tx_params: Built transaction's params
         :return: Transaction's hash
         """

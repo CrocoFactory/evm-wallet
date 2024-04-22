@@ -48,6 +48,7 @@ You can quickly use supported networks as RPC:
 | Optimism Goerli  | ETH          | ✅       |
 | Polygon          | MATIC        | ❌       |
 | Sepolia          | ETH          | ❌       |
+| Scroll           | ETH          | ❌       |
 | zkSync           | ETH          | ❌       |
 
 For specifying network you only need to pass network's name.
