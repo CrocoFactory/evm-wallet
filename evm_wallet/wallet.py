@@ -1,12 +1,12 @@
 from typing import Optional
 from eth_typing import HexStr
-from eth_utils import is_checksum_address
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract.contract import ContractFunction, Contract
 from web3.types import TxParams, Wei
 from evm_wallet._base_wallet import _BaseWallet
 from evm_wallet.types import Network, NetworkInfo, TokenAmount, AnyAddress, ERC20Token
+from evm_wallet.utils import is_checksum_address
 
 
 class Wallet(_BaseWallet):

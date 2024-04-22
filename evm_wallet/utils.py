@@ -1,4 +1,5 @@
-from typing import Literal, get_args, TypedDict, Type, Any
+from typing import Literal, get_args, TypedDict, Type, Any, cast
+from eth_utils import is_text, is_hex_address, to_checksum_address
 
 
 def _in_literal(value: Any, expected_type: Literal) -> bool:
@@ -15,3 +16,14 @@ def _has_keys(value: Any, typed_dict: Type[TypedDict]) -> bool:
         return False
 
     return typed_dict_keys == value_keys
+
+
+def is_checksum_address(value: Any) -> bool:
+    if not is_text(value):
+        return False
+
+    if not is_hex_address(value):
+        return False
+
+    is_equal = value.lower() == to_checksum_address(value).lower()
+    return cast(bool, is_equal)
