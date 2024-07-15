@@ -11,7 +11,7 @@ from web3.contract.contract import ContractFunction, Contract
 from web3.contract.async_contract import AsyncContract, AsyncContractFunction
 from web3.types import ABI, Wei, TxParams
 from evm_wallet.types import Network, NetworkInfo, AnyAddress, TokenAmount, ERC20Token
-from evm_wallet.utils import _in_literal, _has_keys
+from evm_wallet.utils import _in_literal, _is_network_info
 
 ZERO_ADDRESS = Web3.to_checksum_address("0x0000000000000000000000000000000000000000")
 
@@ -311,7 +311,7 @@ class _BaseWallet(ABC):
     def get_network_map(cls) -> dict[Network, NetworkInfo]:
         return cls.__network_map
 
-    def is_native_token(self, token: str | AnyAddress) -> bool:
+    def is_native_token(self, token: str | AnyAddress | ERC20Token) -> bool:
         """
         Returns true if token is native token of network
 
@@ -319,6 +319,10 @@ class _BaseWallet(ABC):
         :return: True if token is native token of network
         """
         network = self.network
+
+        if isinstance(token, ERC20Token):
+            return False
+
         native_token = network['token']
 
         if isinstance(token, bytes):
@@ -336,7 +340,7 @@ class _BaseWallet(ABC):
         if _in_literal(network, Network):
             network = cast(Network, network)
             network_info = NetworkInfo(**cls.__network_map[network])
-        elif _has_keys(network, NetworkInfo):
+        elif _is_network_info(network):
             network_info = cast(NetworkInfo, network)
         else:
             raise TypeError(f"Network information must be represented as NetworkInfo type or name of a supported "
@@ -347,7 +351,7 @@ class _BaseWallet(ABC):
     @classmethod
     def __validate_chain_id(cls, network_info: NetworkInfo, provider: Web3) -> NetworkInfo:
         chain_id = provider.eth.chain_id
-        if network_info['chain_id'] is not None and chain_id != network_info['chain_id']:
+        if network_info.get('chain_id') is not None and chain_id != network_info['chain_id']:
             raise ValueError(f'Chain id in network info must be equal to the chain. Try to find it by: '
                              f'https://chainlist.org/?search={network_info["network"].lower()}')
         else:

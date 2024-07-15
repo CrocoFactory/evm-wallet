@@ -1,8 +1,7 @@
 from web3.types import Wei
 from dataclasses import dataclass
 from eth_typing import Address, HexAddress,  ChecksumAddress
-from typing import Union, Literal, TypedDict
-from typing import NotRequired
+from typing import Union, Literal, TypedDict, NotRequired
 
 TokenAmount = Union[Wei, int]
 AnyAddress = Union[Address, HexAddress, ChecksumAddress, bytes, str]
