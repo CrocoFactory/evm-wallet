@@ -1,12 +1,12 @@
 [tool.poetry]
 name = 'evm_wallet'
-version = '2.1.2'
+version = '2.1.2.post1'
 description = 'The package, containing wrapper over EVM operations for interacting through Wallet entities'
 authors = ['Alexey <axbelenkov@gmail.com>']
 license = 'MIT'
 readme = 'README.md'
-repository = 'https://github.com/blnkoff/evm-wallet'
-homepage = 'https://github.com/blnkoff/evm-wallet'
+repository = 'https://github.com/CrocoFactory/evm-wallet'
+homepage = 'https://github.com/CrocoFactory/evm-wallet'
 classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
