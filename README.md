@@ -22,7 +22,7 @@ familiar, since we try to provide the similar to digital wallet apps' logic. We 
 - swift and robust performing transactions
 - quick performing useful functions of Web3.py
 
-The CLI for developing Web3-based projects in **[Croco Factory](https://github.com/CrocoFactory)**
+The project is made by the **[Croco Factory](https://github.com/CrocoFactory)** team
    
 evm-wallet's source code is made available under the [MIT License](LICENSE)
 
@@ -297,15 +297,14 @@ my_wallet.transfer(usdt, recipient, usdt_amount)
 ```
 
 # Installing evm-wallet
+
+To install the package from PyPi you can use:
+```shell
+pip install evm-wallet
+```
         
 To install the package from GitHub you can use:
 
 ```shell
 pip install git+https://github.com/CrocoFactory/evm-wallet.git
 ```
-
-To install the package from PyPi you can use:
-```shell
-pip install evm-wallet
-```
-
