@@ -1,12 +1,18 @@
 # evm-wallet
 
-[![Croco Logo](https://i.ibb.co/G5Pjt6M/logo.png)](https://t.me/crocofactory)
+<a href="https://github.com/CrocoFactory"><img alt="Croco Logo" src="https://raw.githubusercontent.com/CrocoFactory/.github/main/branding/logo/bookmark_rounded.png" width="100"></a>
+
+[![PyPi Version](https://img.shields.io/pypi/v/evm-wallet)](https://pypi.org/project/evm-wallet/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/evm-wallet?label=downloads)](https://pypi.org/project/evm-wallet/)
+[![License](https://img.shields.io/github/license/CrocoFactory/evm-wallet.svg)](https://pypi.org/project/evm-wallet/)
+[![Last Commit](https://img.shields.io/github/last-commit/CrocoFactory/evm-wallet.svg)](https://pypi.org/project/evm-wallet/)
+[![Development Status](https://img.shields.io/pypi/status/evm-wallet)](https://pypi.org/project/evm-wallet/)
+
 
 The package, containing wrapper over EVM operations for interacting through Wallet entities.
 
-- **[Telegram channel](https://t.me/crocofactory)**
 - **[Overview](#quick-overview)**
-- **[Bug reports](https://github.com/blnkoff/evm-wallet/issues)**
+- **[Bug reports](https://github.com/CrocoFactory/evm-wallet/issues)**
 
 
 Web3.py suggests to interact with instance of Web3 as primary entity. We offer way to use Wallet entity, that is more 
@@ -15,6 +21,8 @@ familiar, since we try to provide the similar to digital wallet apps' logic. We 
 - possibility to set and change current wallet's network by network's name
 - swift and robust performing transactions
 - quick performing useful functions of Web3.py
+
+The project is made by the **[Croco Factory](https://github.com/CrocoFactory)** team
    
 evm-wallet's source code is made available under the [MIT License](LICENSE)
 
@@ -289,15 +297,14 @@ my_wallet.transfer(usdt, recipient, usdt_amount)
 ```
 
 # Installing evm-wallet
-        
-To install the package from GitHub you can use:
-
-```shell
-pip install git+https://github.com/blnkoff/evm-wallet.git
-```
 
 To install the package from PyPi you can use:
 ```shell
 pip install evm-wallet
 ```
+        
+To install the package from GitHub you can use:
 
+```shell
+pip install git+https://github.com/CrocoFactory/evm-wallet.git
+```
