@@ -19,8 +19,17 @@ Usage example:
 :copyright: (c) 2023 by Alexey
 :license: MIT, see LICENSE for more details.
 """
-
+import warnings
 from .wallet import Wallet
 from .async_wallet import AsyncWallet
 from .types import NetworkInfo, ERC20Token
 from ._base_wallet import ZERO_ADDRESS
+
+warnings.warn(
+    "This package has been deprecated. You should migrate to `https://github.com/CrocoFactory/ether`, "
+    "because this package will be deleted in few months",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+warnings.simplefilter('always', DeprecationWarning)
